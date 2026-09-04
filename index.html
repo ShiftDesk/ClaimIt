@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaimIt Fly — Flight Delay Compensation</title>
+  <meta name="description" content="Was your flight delayed, cancelled or overbooked? ClaimIt Fly checks your eligibility and generates a professional claim letter in seconds." />
+  <link rel="icon" href="logo.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #1A6FD4;
+      --blue-dark:  #1A3A6B;
+      --blue-light: #E3EFFF;
+      --bg:         #F7FBFF;
+      --dark:       #202A36;
+      --muted:      #6B8AB0;
+      --success:    #1A7A4A;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(247, 251, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(200, 218, 250, 0.4);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .nav-brand span {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--dark);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--blue); }
+
+    .nav-cta {
+      background: var(--dark);
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 100px;
+      transition: background 0.2s !important;
+    }
+
+    .nav-cta:hover { background: var(--blue) !important; color: #fff !important; }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 5px;
+      padding: 4px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--dark);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      background: rgba(247, 251, 255, 0.98);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(200, 218, 250, 0.4);
+      padding: 1rem 2rem 1.5rem;
+      gap: 1rem;
+    }
+
+    .mobile-menu a {
+      text-decoration: none;
+      color: var(--dark);
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(200, 218, 250, 0.3);
+      transition: color 0.2s;
+    }
+
+    .mobile-menu a:hover { color: var(--blue); }
+    .mobile-menu.open { display: flex; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 2rem 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26, 111, 212, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-badge::before {
+      content: '✈';
+      font-size: 0.85rem;
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title .line1 {
+      color: var(--muted);
+      display: block;
+      font-weight: 400;
+    }
+
+    .hero-title .line2 {
+      color: var(--dark);
+      display: block;
+      margin-top: -4px;
+    }
+
+    .hero-sub {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 4rem;
+    }
+
+    .btn-primary {
+      background: var(--dark);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover { background: var(--blue); transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: var(--blue-light);
+      color: var(--blue);
+      padding: 14px 32px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .btn-secondary:hover { background: #C8DAFA; transform: translateY(-1px); }
+
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.03em;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── HOW IT WORKS ── */
+    section { padding: 100px 2rem; }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--dark);
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 4rem;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2rem;
+    }
+
+    .step {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem;
+      border: 1px solid rgba(200, 218, 250, 0.5);
+      box-shadow: 0 4px 24px rgba(26, 111, 212, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .step:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26, 111, 212, 0.12); }
+
+    .step-num {
+      width: 48px;
+      height: 48px;
+      background: var(--blue-light);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--blue);
+      margin-bottom: 1.25rem;
+    }
+
+    .step h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── FEATURES ── */
+    .features-bg { background: #fff; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 2rem;
+      border: 1px solid rgba(200, 218, 250, 0.5);
+      transition: transform 0.2s;
+    }
+
+    .feature-card:hover { transform: translateY(-3px); }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.4rem;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .pro-badge {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 100px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .price-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 2.5rem;
+      border: 1px solid rgba(200, 218, 250, 0.5);
+      box-shadow: 0 4px 24px rgba(26, 111, 212, 0.06);
+      text-align: center;
+    }
+
+    .price-card.featured {
+      background: var(--dark);
+      border-color: var(--dark);
+      box-shadow: 0 20px 60px rgba(26, 58, 107, 0.25);
+      transform: scale(1.02);
+    }
+
+    .price-card .plan-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .price-card.featured .plan-name { color: rgba(255,255,255,0.6); }
+
+    .price-amount {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-card.featured .price-amount { color: #fff; }
+
+    .price-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .price-card.featured .price-note { color: rgba(255,255,255,0.5); }
+
+    .price-features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .price-features li {
+      font-size: 0.9rem;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .price-card.featured .price-features li { color: rgba(255,255,255,0.85); }
+
+    .price-features li::before {
+      content: '✓';
+      color: var(--success);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .price-card.featured .price-features li::before { color: #4ade80; }
+
+    .btn-price {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.2s;
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+
+    .btn-price:hover { background: #C8DAFA; }
+
+    .price-card.featured .btn-price {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .price-card.featured .btn-price:hover { background: #1560ba; }
+
+    /* ── REGULATIONS ── */
+    .regs { background: #fff; }
+
+    .regs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .reg-card {
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 1.75rem;
+      border: 1px solid rgba(200, 218, 250, 0.5);
+      text-align: center;
+    }
+
+    .reg-flag {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .reg-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.25rem;
+    }
+
+    .reg-card p {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── PRIVACY CTA ── */
+    .privacy-cta {
+      background: var(--blue-light);
+      border-radius: 28px;
+      padding: 4rem 3rem;
+      text-align: center;
+      margin: 0 2rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .privacy-cta h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .privacy-cta p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 2rem;
+      border-top: 1px solid rgba(200, 218, 250, 0.4);
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .footer-brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .footer-brand span {
+      font-weight: 700;
+      color: var(--dark);
+      font-size: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--blue); }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.7s ease both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .hero-stats { gap: 2rem; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 360px; }
+      .price-card.featured { transform: none; }
+      .privacy-cta { padding: 3rem 1.5rem; margin: 0 1rem; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="logo.jpg" alt="ClaimIt Fly logo" />
+      <span>ClaimIt Fly</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><a href="terms.html">Terms</a></li>
+      <li><a href="#download" class="nav-cta">Download</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="#download" style="color:var(--blue);font-weight:700;">Download App</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="fade-up">
+    <span class="hero-badge">Flight Compensation</span>
+  </div>
+  <h1 class="hero-title fade-up delay-1">
+    <span class="line1">Delayed.</span>
+    <span class="line2">Compensated.</span>
+  </h1>
+  <p class="hero-sub fade-up delay-2">
+    Airlines owe you up to EUR 600 when your flight is delayed, cancelled, or overboarded. ClaimIt Fly makes sure you collect.
+  </p>
+  <div class="hero-buttons fade-up delay-3">
+    <a href="#download" class="btn-primary">
+      ↓ Download Free
+    </a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+  <div class="hero-stats fade-up delay-4">
+    <div class="stat">
+      <span class="stat-value">EUR 600</span>
+      <span class="stat-label">Max per passenger</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">4 laws</span>
+      <span class="stat-label">Regulations covered</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">77+</span>
+      <span class="stat-label">Airlines in directory</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">6</span>
+      <span class="stat-label">Letter languages</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-inner">
+    <p class="section-label">How it works</p>
+    <h2 class="section-title">Claim in 4 steps</h2>
+    <p class="section-sub">No lawyers. No agencies taking 35%. You keep everything.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Enter your flight</h3>
+        <p>Type your flight number, date, and route. ClaimIt Fly does the rest.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Check eligibility</h3>
+        <p>Instantly see if you qualify and your exact compensation amount — EUR 250, 400, or 600.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Generate your letter</h3>
+        <p>Pro generates a professional, legally-worded claim letter in your language ready to send.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Track &amp; escalate</h3>
+        <p>Monitor your claim. If the airline ignores you, escalate to the national authority with one tap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="features-bg">
+  <div class="section-inner">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">Everything you need to win</h2>
+    <p class="section-sub">Free to check. Pro to claim.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Instant eligibility check</h3>
+        <p>Know in seconds if your flight qualifies. Covers EU261, UK261, Canada APPR, and US DOT rules.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🧮</span>
+        <h3>Compensation calculator</h3>
+        <p>Calculate exactly how much you are owed based on your route and disruption type.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📄</span>
+        <h3>Claim letters <span class="pro-badge">PRO</span></h3>
+        <p>Professional, legally-worded letters in English, Danish, Arabic, French, German, and Spanish.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">✈️</span>
+        <h3>Airline directory <span class="pro-badge">PRO</span></h3>
+        <p>Direct claims email and phone for 77 airlines worldwide. No searching needed.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👨‍👩‍👧‍👦</span>
+        <h3>Family claims <span class="pro-badge">PRO</span></h3>
+        <p>Generate individual letters for every passenger on the same flight at once.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏛️</span>
+        <h3>National authority escalation <span class="pro-badge">PRO</span></h3>
+        <p>If the airline ignores you, escalate to the right enforcement body with a ready letter.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📎</span>
+        <h3>Document attachments <span class="pro-badge">PRO</span></h3>
+        <p>Attach boarding passes, booking confirmations, and evidence photos to your claim.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔔</span>
+        <h3>Deadline reminders <span class="pro-badge">PRO</span></h3>
+        <p>Get notified at 7, 14, and 21 days if the airline hasn't responded.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>100% private</h3>
+        <p>All data stays on your device. No accounts, no cloud, no data sharing. Ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-inner" style="text-align:center;">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">Simple. One-time. Fair.</h2>
+    <p class="section-sub" style="margin:0 auto 3rem;">You could pay an agency 35% of your claim. Or pay EUR 4.99 once and keep everything.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <p class="plan-name">Free</p>
+        <p class="price-amount">EUR 0</p>
+        <p class="price-note">Forever free</p>
+        <ul class="price-features">
+          <li>Eligibility check</li>
+          <li>Compensation amount</li>
+          <li>Regulation identified</li>
+          <li>Calculator</li>
+          <li>Claim status tracking</li>
+        </ul>
+        <a href="#download" class="btn-price">Download Free</a>
+      </div>
+      <div class="price-card featured">
+        <p class="plan-name">Pro</p>
+        <p class="price-amount">EUR 4.99</p>
+        <p class="price-note">One-time · No subscription</p>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Claim letters in 6 languages</li>
+          <li>Email airline directly</li>
+          <li>Airline directory (77 airlines)</li>
+          <li>Escalation letters</li>
+          <li>Family &amp; group claims</li>
+          <li>Document attachments</li>
+          <li>Deadline reminders</li>
+        </ul>
+        <a href="#download" class="btn-price">Unlock Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REGULATIONS -->
+<section class="regs">
+  <div class="section-inner">
+    <p class="section-label">Coverage</p>
+    <h2 class="section-title">4 passenger rights laws</h2>
+    <p class="section-sub">ClaimIt Fly covers the world's major flight compensation regulations.</p>
+    <div class="regs-grid">
+      <div class="reg-card">
+        <span class="reg-flag">🇪🇺</span>
+        <h3>EU Regulation 261/2004</h3>
+        <p>All flights departing EU/EEA airports, plus EU carrier arrivals</p>
+      </div>
+      <div class="reg-card">
+        <span class="reg-flag">🇬🇧</span>
+        <h3>UK261</h3>
+        <p>Flights departing UK airports after Brexit</p>
+      </div>
+      <div class="reg-card">
+        <span class="reg-flag">🇨🇦</span>
+        <h3>Canada APPR</h3>
+        <p>Air Passenger Protection Regulations for Canadian flights</p>
+      </div>
+      <div class="reg-card">
+        <span class="reg-flag">🇺🇸</span>
+        <h3>US DOT Part 250</h3>
+        <p>Involuntary denied boarding compensation on US domestic routes</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY CTA -->
+<section id="download" style="padding: 80px 2rem;">
+  <div class="privacy-cta">
+    <h2>Your data never leaves your iPhone</h2>
+    <p>No sign-up. No cloud. No tracking. ClaimIt Fly stores everything locally using Apple SwiftData. Your name, address, and claim letters are yours alone.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="https://apps.apple.com" class="btn-primary">Download on the App Store</a>
+      <a href="privacy.html" class="btn-secondary">Privacy Policy</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-brand" href="index.html">
+      <img src="logo.jpg" alt="ClaimIt Fly" />
+      <span>ClaimIt Fly</span>
+    </a>
+    <ul class="footer-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><a href="terms.html">Terms</a></li>
+    </ul>
+    <p class="footer-copy">2026 ClaimIt Fly · chmays.app · <a href="mailto:support@chmays.app" style="color:var(--muted);text-decoration:none;">support@chmays.app</a></p>
+  </div>
+</footer>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+  // Close mobile menu on link click
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+</script>
+</body>
+</html>
